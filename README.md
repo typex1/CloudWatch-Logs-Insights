@@ -1,4 +1,4 @@
-# CloudWatch Logs Insights
+# CloudWatch Logs Insights Queries
 
 Good example queries to gain more output from Logs Insights.
 
