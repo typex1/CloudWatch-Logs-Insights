@@ -30,6 +30,22 @@ fields @timestamp, @message
 | stats avg(initDuration), max(initDuration), count() by bin(1d)
 ```
 
+Count a number of cold starts, average init time and maximum init duration of a Lambda function
+```
+filter @type="REPORT"
+| fields @memorySize / 1000000 as memorySize
+| filter @message like /(?i)(Init Duration)/
+| parse @message /^REPORT.*Init Duration: (?<initDuration>.*) ms.*/
+| parse @log /^.*\/aws\/lambda\/(?<functionName>.*)/
+| stats count() as coldStarts, avg(initDuration) as avgInitDuration, max(initDuration) as maxIntDuration by functionName, memorySize
+```
+
+Checking Lambda performance - P90 latency, total invokes, and max latency for a 5 min time window in a table
+```
+filter @type = "REPORT"
+| stats avg(@duration), max(@duration), min(@duration), pct(@duration, 90), count(@duration) by bin(5m)
+```
+
 Show the number of log events iin the log group for each log stream:
 ```
 stats count(*) by @logStream
@@ -61,6 +77,39 @@ fields @timestamp, @message
 | limit 20
 ```
 
+Find 50 most recent errors
+```
+fields Timestamp, LogLevel, Message
+| filter LogLevel == "ERR"
+| sort @timestamp desc
+| limit 50
+```
+
+Exclude informational logs to highlight only Lambda errors
+```
+fields @timestamp, @message
+| sort @timestamp desc
+| filter @message not like 'EXTENSION'
+| filter @message not like 'Lambda Insights'
+| filter @message not like 'INFO'
+| filter @message not like 'REPORT'
+| filter @message not like 'END'
+| filter @message not like 'START'
+
+
+## API Gateway
+
+Find a non-200 error in API Gateway Execution Logs
+```
+fields @timestamp, @message, @requestId, @duration, @xrayTraceId, @logStream, @logStream
+| filter
+   @message like /fail/ or
+   @message like /timed/ or
+   @message like /X-Amz-Function-Error/ or
+   @message like /tatus: 4/ or
+   @message like /tatus: 5/
+| sort @timestamp desc
+```
 
 ## CloudTrail
 
@@ -91,3 +140,10 @@ filter @message like /STORY Created/
 | parse 'STORY Created *-*-* *' as publisher, publication, story_id, external_id
 | stats count() by bin(30m), publication
 ```
+
+Find all logs for a given request ID or X-Ray trace ID
+```
+fields @timestamp, @message
+| filter @message like /REQUEST_ID_GOES_HERE/
+```
+
