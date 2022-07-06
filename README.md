@@ -67,12 +67,11 @@ fields @timestamp, @message
 | limit 20
 ```
 
-Additionally, extract specific value:
+Filter for specific string, print log stream name:
 ```
-fields @timestamp, @message
+fields @timestamp, @message, @logstream
 | filter @message like /value too/
 | parse @message "value too *" as @value
-#| stats count(*) by @userId
 | sort @timestamp desc
 | limit 20
 ```
