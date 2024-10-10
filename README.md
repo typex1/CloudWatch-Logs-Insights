@@ -59,7 +59,7 @@ filter @type = "REPORT"
 | stats avg(@duration), max(@duration), min(@duration) by bin(5m)
 ```
 
-Logs Insights expression to filter for a specific request-ID in Lambda:
+Logs Insights expression to filter for a specific request-ID or keyword or pattern in Lambda:
 ```
 fields @timestamp, @message
 | filter @message like /1b8c5a9e-5bc2-4286-94f4-59898c838037/
